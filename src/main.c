@@ -48,10 +48,5 @@ int main(void) {
         }
     }
 
-    for (int i = 0; i < instructionAmount; i++) {
-        printf("Parsed Instruction %d: Operation %d, Dest %d, Src1 %d, Src2 %d\n",
-               i + 1, instructions[i].op, instructions[i].dest, instructions[i].src1, instructions[i].src2);
-    }
-
     return 0;
 }
