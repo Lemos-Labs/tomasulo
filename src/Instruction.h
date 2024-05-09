@@ -264,6 +264,12 @@ void debugInstruction(Instruction instruct)
     }
 }
 
+/**
+ * ## [WARNING] Does not validate syntax. 
+ * If the syntax is misswritten, it won't return an error, but it'll execute wrongly.
+ * trash-in trash-out
+ * 
+*/
 bool parseInstruction(char *instructionStr, Instruction *in)
 {
     char *token = strtok(instructionStr, " ");
