@@ -42,7 +42,7 @@ int main(void) {
     Instruction instructions[MAX_INSTRUCTIONS];
 
     for (short i = 0; i < instructionAmount; i++) {
-        if (!parseInstruction(inputInstructions[i], &instructions[i])) {
+        if (!parseInstruction(inputInstructions[i])) {
             printf("Error at parsing instruction at line %d\n", i + 1);
             return 1;
         }
@@ -50,3 +50,11 @@ int main(void) {
 
     return 0;
 }
+
+/**
+ * Temos 2 tipos de estacao de reserva:
+ * 1. 4x de operacao inteira
+ * 2. 2x de ponto flutuante
+ * 
+ * Eles armazenam instrucoes 
+*/

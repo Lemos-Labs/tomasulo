@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 typedef enum
 {
@@ -61,7 +62,10 @@ typedef struct
 
 /**
  * Instruction Wrapper, because there is no Polymorphism ~in this fucking~ language.
+ * When the `instructionType` is `threeReg`, the programmer should use ONLY the threeReg field.
+ * In the other side, if the `instructionType` is `twoReg`, the programmer should use twoReg field.
  */
+
 typedef struct
 {
     Operation operation;
@@ -70,6 +74,17 @@ typedef struct
     Instruction_TwoReg twoReg;
 } Instruction;
 
+void remove_newline(char *str)
+{
+    int length = strlen(str);
+
+    // Check if the last character is a newline
+    if (length > 0 && str[length - 1] == '\n')
+    {
+        // Replace the newline character with the null terminator
+        str[length - 1] = '\0';
+    }
+}
 //@TODO: change this to switch bc it's O(1)
 Operation getOperation(char *opString)
 {
@@ -167,59 +182,76 @@ Instruction_ThreeReg _parseInstructionThreeReg(char *instructionStr)
  */
 Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
 {
-    // `SPACE` R[n] `comma` [n] `(` R[n] `)`
-
-    // JUMP FIRST_SPACE
-    int j;
-    for (int i = 0; i < 30; i++)
-        if (instructionStr[i] == ' ' && instructionStr[i + 1] == 'R')
-        {
-            j = i + 1;
+    printf("%s:\n", instructionStr);
+    int sourceReg1 = 0;
+    int targetReg = 0;
+    int offset = 0;
+    for (int k = 0; k < 30; k++)
+    {
+        if (instructionStr[k] == '\n' || instructionStr[k] == 0)
             break;
+
+        switch (instructionStr[k])
+        {
+        case 'R': // targetReg
+            k += 1;
+            int initial = k;
+            char tmpStr[10] = {0};
+            while (instructionStr[k] >= '0' && instructionStr[k] <= '9')
+            {
+                tmpStr[k - initial] = instructionStr[k];
+                k += 1;
+            }
+            k -= 1;
+            targetReg = atoi(tmpStr);
+            break;
+        case ',': // Offset
+            k += 1;
+            initial = k;
+            char offsetTmp[10] = {0};
+            while (instructionStr[k] >= '0' && instructionStr[k] <= '9')
+            {
+                offsetTmp[k - initial] = instructionStr[k];
+                k += 1;
+            }
+            offset = atoi(offsetTmp);
+            k -= 1;
+            break;
+        case '(': // sourgeReg1
+            k += 1;
+            if (instructionStr[k] != 'R')
+            {
+                printf("[ParserError] Instruction '%s' - Expected 'R' after brackets, but received '%c'", instructionStr, instructionStr[k]);
+                exit(0);
+            }
+            k += 1;
+            initial = k;
+            char srgRegTmp[10] = {0};
+            while (instructionStr[k] >= '0' && instructionStr[k] <= '9')
+            {
+                srgRegTmp[k - initial] = instructionStr[k];
+                k += 1;
+            }
+            srgRegTmp[k] = 0;
+            sourceReg1 = atoi(srgRegTmp);
+            k -= 1;
+            break;
+        case ')': // Success, the ONLY return method here
+            Instruction_TwoReg returnInstruct = {targetReg, sourceReg1, offset};
+            return returnInstruct;
+        case ' ':
+            break;
+        case 0:
+        default:
+            printf("[ParserError] Instruction '%s' has a invalid character at position %d - '%c'", instructionStr, k, instructionStr[k]);
+            exit(0);
         }
-
-    // PARSE FIRST_REGISTER
-    char targetRegStr[10];
-    int i = 0;
-    for (j = j + 1; instructionStr[j] >= 48 && instructionStr[j] <= 57; j++)
-    {
-        targetRegStr[i] = instructionStr[j];
-        i++;
     }
-    targetRegStr[i] = '\0';
-    int targetReg = atoi(targetRegStr);
+    printf("[ParserError] Instruction '%s' ended misteriously. Check if the instruction ends with an ')'", instructionStr);
+    exit(0);
 
-    // Jump after comma
-    for (j = j + 1; instructionStr[j] == ',' || instructionStr[j] == ' '; j++)
-        ;
-
-    // PARSE OFFSET
-    char offsetStr[10];
-    i = 0;
-    for (j = j; instructionStr[j] >= 48 && instructionStr[j] <= 57; j++)
-    {
-        offsetStr[i] = instructionStr[j];
-        i++;
-    }
-    int offset = atoi(offsetStr);
-
-    // Jump after '('
-    for (j = j; instructionStr[j] == '(' || instructionStr[j] == ' '; j++)
-        ;
-
-    // PARSE srcReg1;
-    char srcReg1Str[10];
-    i = 0;
-    for (j = j + 1; instructionStr[j] >= 48 && instructionStr[j] <= 57; j++)
-    {
-        srcReg1Str[i] = instructionStr[j];
-        i++;
-    }
-    int srcReg1 = atoi(srcReg1Str);
-
-    Instruction_TwoReg returnInstruct = {targetReg, srcReg1, offset};
-
-    return returnInstruct;
+    Instruction_TwoReg failedInstruct = {0, 0, 0};
+    return failedInstruct;
 }
 
 /**
@@ -253,33 +285,31 @@ void debugInstruction(Instruction instruct)
         printf("* targetReg: %d\n", instruct.twoReg.targetReg);
         printf("* srcReg1: %d\n", instruct.twoReg.srcReg1);
         printf("* offset: %d\n", instruct.twoReg.offset);
+        return;
     }
-    else
-    {
-        printf("ThreeReg\n");
-        printf("--------\n");
-        printf("* targetReg: %d\n", instruct.threeReg.targetReg);
-        printf("* srcReg1: %d\n", instruct.threeReg.srcReg1);
-        printf("* srcReg2: %d\n", instruct.threeReg.srcReg2);
-    }
+    return;
+    printf("ThreeReg\n");
+    printf("--------\n");
+    printf("* targetReg: %d\n", instruct.threeReg.targetReg);
+    printf("* srcReg1: %d\n", instruct.threeReg.srcReg1);
+    printf("* srcReg2: %d\n", instruct.threeReg.srcReg2);
 }
 
 /**
- * ## [WARNING] Does not validate syntax. 
+ * ## [WARNING] Does not validate syntax.
  * If the syntax is misswritten, it won't return an error, but it'll execute wrongly.
  * trash-in trash-out
- * 
-*/
-bool parseInstruction(char *instructionStr, Instruction *in)
+ *
+ */
+bool parseInstruction(char *instructionStr)
 {
-    char *token = strtok(instructionStr, " ");
+    remove_newline(instructionStr);
+    char *saveInstr;
+    char *token = strtok_r(instructionStr, " ", &saveInstr);
     int operator= getOperation(token);
     if (operator== - 1) // Invalid token
         return false;
-
-    Instruction instruct = parseFullInstruction(instructionStr, operator);
-
-    printf("\n\n\n");
+    Instruction instruct = parseFullInstruction(saveInstr, operator);
     debugInstruction(instruct);
     return true;
 }
