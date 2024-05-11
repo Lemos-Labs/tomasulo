@@ -121,59 +121,45 @@ InstructionType getInstructionType(Operation op)
  */
 Instruction_ThreeReg _parseInstructionThreeReg(char *instructionStr)
 {
-    // JUMP FIRST_SPACE
-    int j;
-    for (int i = 0; i < 30; i++)
-        if (instructionStr[i] == ' ' && instructionStr[i + 1] == 'R')
-        {
-            j = i + 1;
+    int registers[3] = {0};
+    int register_count = 0;
+    for (int k = 0; k < 30; k++)
+    {
+        if (instructionStr[k] == '\n' || instructionStr[k] == 0)
             break;
+
+        switch (instructionStr[k])
+        {
+        case 'R': // Registers
+            k += 1;
+            int initial = k;
+            char tmpStr[10] = {0};
+            while (instructionStr[k] >= '0' && instructionStr[k] <= '9')
+            {
+                tmpStr[k - initial] = instructionStr[k];
+                k += 1;
+            }
+            k -= 1;
+            registers[register_count] = atoi(tmpStr);
+            register_count++;
+            break;
+        case ',':
+        case ' ':
+            break;
+        case 0:
+        default:
+            printf("[ParserError] Instruction '%s' has a invalid character at position %d - '%c'", instructionStr, k, instructionStr[k]);
+            exit(0);
         }
-
-    // PARSE FIRST_REGISTER
-    char targetRegStr[10];
-    int i = 0;
-    for (j = j + 1; instructionStr[j] >= 48 && instructionStr[j] <= 57; j++)
-    {
-        targetRegStr[i] = instructionStr[j];
-        i++;
     }
-    targetRegStr[i] = '\0';
-    int targetReg = atoi(targetRegStr);
-
-    // Jump after comma
-    for (j = j + 1; instructionStr[j] == ',' || instructionStr[j] == ' '; j++)
-        ;
-
-    // PARSE SECOND_REGISTER
-    char srcReg1Str[10];
-    i = 0;
-    for (j = j + 1; instructionStr[j] >= 48 && instructionStr[j] <= 57; j++)
+    if (register_count != 3)
     {
-        srcReg1Str[i] = instructionStr[j];
-        i++;
+        printf("[ParserError] Instruction '%s' is missing registers. Expected 3 Registers, but received only %d.", instructionStr, register_count);
+        exit(0);
     }
-    srcReg1Str[i] = '\0';
-    int srcReg1 = atoi(srcReg1Str);
 
-    // Jump after comma
-    for (j = j + 1; instructionStr[j] == ',' || instructionStr[j] == ' '; j++)
-        ;
-
-    // PARSE THIRD_REGISTER
-    char srcReg2Str[10];
-    i = 0;
-    for (j = j + 1; instructionStr[j] >= 48 && instructionStr[j] <= 57; j++)
-    {
-        srcReg2Str[i] = instructionStr[j];
-        i++;
-    }
-    srcReg2Str[i] = '\0';
-    int srcReg2 = atoi(srcReg2Str);
-
-    Instruction_ThreeReg returnInstruct = {targetReg, srcReg1, srcReg2};
-
-    return returnInstruct;
+    Instruction_ThreeReg instruction = {registers[0], registers[1], registers[2]};
+    return instruction;
 }
 
 /**
@@ -182,7 +168,6 @@ Instruction_ThreeReg _parseInstructionThreeReg(char *instructionStr)
  */
 Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
 {
-    printf("%s:\n", instructionStr);
     int sourceReg1 = 0;
     int targetReg = 0;
     int offset = 0;
@@ -275,31 +260,27 @@ Instruction parseFullInstruction(char *instructionStr, Operation op)
 
 void debugInstruction(Instruction instruct)
 {
-    printf("-- Instruction Debug --");
-    printf("\n[Operation] = %s", getOperationName(instruct.operation));
-    printf("\n[Type] = ");
+    printf("\n");
     if (getInstructionType(instruct.operation) == TwoReg)
     {
-        printf("TwoReg\n");
-        printf("--------\n");
-        printf("* targetReg: %d\n", instruct.twoReg.targetReg);
-        printf("* srcReg1: %d\n", instruct.twoReg.srcReg1);
-        printf("* offset: %d\n", instruct.twoReg.offset);
-        return;
+        printf("[Operation]: '%s' - (TwoReg)\n", getOperationName(instruct.operation));
+        printf("[target]: %d\n", instruct.twoReg.targetReg);
+        printf("[source]: %d\n", instruct.twoReg.srcReg1);
+        printf("[offset]: %d\n", instruct.twoReg.offset);
     }
-    return;
-    printf("ThreeReg\n");
-    printf("--------\n");
-    printf("* targetReg: %d\n", instruct.threeReg.targetReg);
-    printf("* srcReg1: %d\n", instruct.threeReg.srcReg1);
-    printf("* srcReg2: %d\n", instruct.threeReg.srcReg2);
+    else
+    {
+        printf("[Operation]: '%s' - (ThreeReg)\n", getOperationName(instruct.operation));
+        printf("[target]: %d\n", instruct.threeReg.targetReg);
+        printf("[source_1]: %d\n", instruct.threeReg.srcReg1);
+        printf("[offset_2]: %d\n", instruct.threeReg.srcReg2);
+    }
 }
 
 /**
- * ## [WARNING] Does not validate syntax.
- * If the syntax is misswritten, it won't return an error, but it'll execute wrongly.
- * trash-in trash-out
- *
+ * # Parses a instruction.
+ * It decides if it's a twoReg or threeReg and parses it.
+ * If an error is detected, the program will PANIC, throwing a exit() non-treatable error!
  */
 bool parseInstruction(char *instructionStr)
 {
