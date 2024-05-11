@@ -65,7 +65,6 @@ typedef struct
  * When the `instructionType` is `threeReg`, the programmer should use ONLY the threeReg field.
  * In the other side, if the `instructionType` is `twoReg`, the programmer should use twoReg field.
  */
-
 typedef struct
 {
     Operation operation;
@@ -85,8 +84,20 @@ void remove_newline(char *str)
         str[length - 1] = '\0';
     }
 }
+
+/**
+ * @brief Print an parser error (with colors UwU), and immediatly stops the program execution with `exit(0)`
+ */
+void _panicParserError(char *message, char *instruction)
+{
+    printf("\033[1;31m[ParserError]");
+    printf("\033[0m at '\033[0;36m%s'\033[0m", instruction);
+    printf("\033[0m %s\n", message);
+    exit(0);
+}
+
 //@TODO: change this to switch bc it's O(1)
-Operation getOperation(char *opString)
+Operation _getOperation(char *opString)
 {
     if (strcmp(opString, "SW") == 0)
         return SW;
@@ -105,7 +116,7 @@ Operation getOperation(char *opString)
 }
 
 /**
- * Gets an operation and returns his Type (`TwoReg` or `ThreeReg`)
+ * @brief Gets an operation and returns his Type (`TwoReg` or `ThreeReg`)
  */
 InstructionType getInstructionType(Operation op)
 {
@@ -116,7 +127,7 @@ InstructionType getInstructionType(Operation op)
 }
 
 /**
- * "Parses" an threeRegister operation.
+ * @brief "Parses" an threeRegister operation.
  * Follows the syntax: _` R[n] comma R[N] comma R[N]_
  */
 Instruction_ThreeReg _parseInstructionThreeReg(char *instructionStr)
@@ -148,14 +159,16 @@ Instruction_ThreeReg _parseInstructionThreeReg(char *instructionStr)
             break;
         case 0:
         default:
-            printf("[ParserError] Instruction '%s' has a invalid character at position %d - '%c'", instructionStr, k, instructionStr[k]);
-            exit(0);
+            char message[50];
+            sprintf(message, "invalid character at position %d - '%c'", k, instructionStr[k]);
+            _panicParserError(message, instructionStr);
         }
     }
     if (register_count != 3)
     {
-        printf("[ParserError] Instruction '%s' is missing registers. Expected 3 Registers, but received only %d.", instructionStr, register_count);
-        exit(0);
+        char message[50];
+        sprintf(message, "Missing registers. Expected 3, received %d", register_count);
+        _panicParserError(message, instructionStr);
     }
 
     Instruction_ThreeReg instruction = {registers[0], registers[1], registers[2]};
@@ -163,11 +176,12 @@ Instruction_ThreeReg _parseInstructionThreeReg(char *instructionStr)
 }
 
 /**
- * "Parses" an twoRegister operation.
+ * @brief "Parses" an twoRegister operation.
  * Follows the syntax: _`  R[n]   comma   [n]   (   R[n]    )`_
  */
 Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
 {
+    int inputReceived[3] = {0}; // Validates input
     int sourceReg1 = 0;
     int targetReg = 0;
     int offset = 0;
@@ -189,6 +203,7 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
             }
             k -= 1;
             targetReg = atoi(tmpStr);
+            inputReceived[0] = 1;
             break;
         case ',': // Offset
             k += 1;
@@ -201,14 +216,18 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
             }
             offset = atoi(offsetTmp);
             k -= 1;
+            inputReceived[1] = 1;
             break;
         case '(': // sourgeReg1
             k += 1;
+
             if (instructionStr[k] != 'R')
             {
-                printf("[ParserError] Instruction '%s' - Expected 'R' after brackets, but received '%c'", instructionStr, instructionStr[k]);
-                exit(0);
+                char message[50];
+                sprintf(message, "Expected 'R' after brackets, but received '%c'", instructionStr[k]);
+                _panicParserError(message, instructionStr);
             }
+
             k += 1;
             initial = k;
             char srgRegTmp[10] = {0};
@@ -219,30 +238,40 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
             }
             srgRegTmp[k] = 0;
             sourceReg1 = atoi(srgRegTmp);
+            inputReceived[2] = 1;
             k -= 1;
             break;
         case ')': // Success, the ONLY return method here
+            if (inputReceived[0] == 0)
+                _panicParserError("'target register' is missing ", instructionStr);
+
+            if (inputReceived[1] == 0)
+                _panicParserError("'first source register' is missing ", instructionStr);
+
+            if (inputReceived[2] == 0)
+                _panicParserError("'second source register' is missing ", instructionStr);
+
             Instruction_TwoReg returnInstruct = {targetReg, sourceReg1, offset};
             return returnInstruct;
         case ' ':
             break;
         case 0:
         default:
-            printf("[ParserError] Instruction '%s' has a invalid character at position %d - '%c'", instructionStr, k, instructionStr[k]);
-            exit(0);
+            char message[50];
+            sprintf(message, "invalid character at position %d - '%c'", k, instructionStr[k]);
+            _panicParserError(message, instructionStr);
         }
     }
-    printf("[ParserError] Instruction '%s' ended misteriously. Check if the instruction ends with an ')'", instructionStr);
-    exit(0);
+    _panicParserError("Ended misteriously. Check if the instructions ends with an ')'", instructionStr);
 
     Instruction_TwoReg failedInstruct = {0, 0, 0};
     return failedInstruct;
 }
 
 /**
- * Identifies an instructiong as `Instruction_TwoReg` or `Instruction_ThreeReg`, and parses it;
+ * @brief Identifies an instructiong as `Instruction_TwoReg` or `Instruction_ThreeReg`, and parses it;
  */
-Instruction parseFullInstruction(char *instructionStr, Operation op)
+Instruction _parseFullInstruction(char *instructionStr, Operation op)
 {
     Instruction returnInstruction;
     returnInstruction.operation = op;
@@ -258,6 +287,9 @@ Instruction parseFullInstruction(char *instructionStr, Operation op)
     return returnInstruction;
 }
 
+/**
+ * @brief Prints the instruction data as human readable.
+ */
 void debugInstruction(Instruction instruct)
 {
     printf("\n");
@@ -278,7 +310,8 @@ void debugInstruction(Instruction instruct)
 }
 
 /**
- * # Parses a instruction.
+ * ## Parses a instruction.
+ *
  * It decides if it's a twoReg or threeReg and parses it.
  * If an error is detected, the program will PANIC, throwing a exit() non-treatable error!
  */
@@ -287,10 +320,10 @@ bool parseInstruction(char *instructionStr)
     remove_newline(instructionStr);
     char *saveInstr;
     char *token = strtok_r(instructionStr, " ", &saveInstr);
-    int operator= getOperation(token);
+    int operator= _getOperation(token);
     if (operator== - 1) // Invalid token
         return false;
-    Instruction instruct = parseFullInstruction(saveInstr, operator);
+    Instruction instruct = _parseFullInstruction(saveInstr, operator);
     debugInstruction(instruct);
     return true;
 }
