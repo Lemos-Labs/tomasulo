@@ -1,4 +1,12 @@
 # Developer - Must READ
+## Architecture
+
+![WhatsApp Image 2024-05-12 at 17 14 20_b6336279](https://github.com/Lemos-Labs/tomasulo/assets/49888082/15eeac3a-e080-4eda-a47c-c686327ab6c9)
+
+* 1 Load/Store
+* 1 Multiplicador de PF
+* 1 Somador de PF
+
 
 ## Parser
 ### Supported Instructions
