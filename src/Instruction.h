@@ -112,7 +112,8 @@ Operation _getOperation(char *opString)
     else if (strcmp(opString, "ADDD") == 0)
         return ADDD;
 
-    return -1; // Unknown operation
+    _panicParserError("Invalid operation", opString);
+    return -1; // Unreachable
 }
 
 /**
@@ -315,15 +316,12 @@ void debugInstruction(Instruction instruct)
  * It decides if it's a twoReg or threeReg and parses it.
  * If an error is detected, the program will PANIC, throwing a exit() non-treatable error!
  */
-bool parseInstruction(char *instructionStr)
+Instruction parseInstruction(char *instructionStr)
 {
     remove_newline(instructionStr);
     char *saveInstr;
     char *token = strtok_r(instructionStr, " ", &saveInstr);
     int operator= _getOperation(token);
-    if (operator== - 1) // Invalid token
-        return false;
     Instruction instruct = _parseFullInstruction(saveInstr, operator);
-    debugInstruction(instruct);
-    return true;
+    return instruct;
 }

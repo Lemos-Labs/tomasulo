@@ -34,18 +34,10 @@ int main(void) {
         return 1;
     }
 
-    // Print instructions for debugging
-    for (int i = 0; i < instructionAmount; i++) {
-        printf("Instruction %d: %s", i + 1, inputInstructions[i]);
-    }
-
     Instruction instructions[MAX_INSTRUCTIONS];
 
     for (short i = 0; i < instructionAmount; i++) {
-        if (!parseInstruction(inputInstructions[i])) {
-            printf("Error at parsing instruction at line %d\n", i + 1);
-            return 1;
-        }
+        parseInstruction(inputInstructions[i]);
     }
 
     return 0;
