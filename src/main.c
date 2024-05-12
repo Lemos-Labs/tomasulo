@@ -34,10 +34,14 @@ int main(void) {
         return 1;
     }
 
-    Instruction instructions[MAX_INSTRUCTIONS];
+    Instruction instructionsList[instructionAmount];
 
     for (short i = 0; i < instructionAmount; i++) {
-        parseInstruction(inputInstructions[i]);
+        instructionsList[i] = parseInstruction(inputInstructions[i]);
+    }
+
+    for(short i =0; i < instructionAmount; i++){
+        debugInstruction(instructionsList[i]);
     }
 
     return 0;
