@@ -3,45 +3,13 @@
 #include <stdbool.h>
 
 #include "Instruction.h"
+#include "Station.h"
 
 #define MAX_INSTR_LENGTH 25  // Maximum length of each instruction
 #define MAX_INSTRUCTIONS 100 // Maximum number of instructions
 #define REG_AMOUNT 16        // Number of FP registers
-#define STATIONS_AMOUNT 7    // Number of reservation stations - 2 adders, 1 multiplier, 2 load, 2 store
 
 int clock = 0;
-
-typedef enum
-{
-    Adder,      // 0
-    Multiplier, // 1
-    Load,       // 2
-    Store       // 3
-} StationType;
-
-typedef struct
-{
-    bool ready;
-    bool busy;
-    StationType type;
-    Instruction in;
-} Station;
-
-/**
- * Se retornar -1 é por que está busy.
- */
-int findNonBusyStation(Station station[STATIONS_AMOUNT], StationType type)
-{
-    for (int i = 0; i < STATIONS_AMOUNT; i++)
-    {
-        if (type == station[i].type)
-        {
-            if (!station[i].busy)
-                return i;
-        }
-    }
-    return -1;
-}
 
 int readInstructions(const char *filePath, char instructions[][MAX_INSTR_LENGTH])
 {
@@ -63,26 +31,6 @@ int readInstructions(const char *filePath, char instructions[][MAX_INSTR_LENGTH]
     fclose(fptr);
     return count;
 };
-
-StationType getDispatchTarget(Instruction inst)
-{
-    switch (inst.operation)
-    {
-    case ADD:
-    case SUB:
-        return Adder;
-    case LW:
-        return Load;
-    case SW:
-        return Store;
-    case MUL:
-    case DIV:
-        return Multiplier;
-    default:
-        printf("ERROR - GetDispatchTarget, unreachable!");
-        exit(0);
-    }
-}
 
 int main(void)
 {
@@ -115,25 +63,10 @@ int main(void)
         if (currentInstructionPos == instructionAmount)
             break;
         Instruction currentInstruction = instructionsList[currentInstructionPos];
-        // debugInstruction(currentInstruction);
-        StationType stationType = getDispatchTarget(instructionsList[currentInstructionPos++]);
-        int targetStationIndex = findNonBusyStation(reservationStations, stationType);
-
-        if (targetStationIndex == -1)
-        {
-            printf("TODO - Stations are full, but it's not implemented");
-            exit(0);
-        }
-
-        reservationStations[targetStationIndex].busy = 1;
-        reservationStations[targetStationIndex].in = currentInstruction;
-
+        dispatchInstruction(reservationStations, currentInstruction);
         /** Debug */
-        printf("Reservation Station: \n");
-        printf("Busy: %d", reservationStations[targetStationIndex].busy);
-        debugInstruction(currentInstruction);
-        printf("[Index]: %d\n\n", targetStationIndex);
-
+        debugReservationStation(reservationStations[5]);
+        exit(0);
         clock += 1;
     }
 
