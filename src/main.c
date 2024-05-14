@@ -10,6 +10,8 @@
 #define STATIONS_AMOUNT 5 // Number of reservation stations - 3 adders and 2 multipliers
 #define BUFFERS_AMOUNT 4 // Number of load/store buffers - 2 for each
 
+int clock = 0;
+
 typedef enum {
     Adder,
     Multiplier
@@ -31,17 +33,24 @@ typedef struct {
     bool busy;
     BufferType type;
     Instruction in;
-} LoadStoreBuffer; 
-
-void initializeStructures(int registers[REG_AMOUNT], ReservationStation stations[STATIONS_AMOUNT], LoadStoreBuffer buffers[BUFFERS_AMOUNT]) {
+} LoadStoreBuffer; static es(int registers[REG_AMOUNT], ReservationStation stations[STATIONS_AMOUNT], LoadStoreBuffer buffers[BUFFERS_AMOUNT]) {
     int register[REGISTER_AMOUT] = {0}
 
     for (int i = 0; i < STATIONS_AMOUNT; i++) {
         if (i <= 2) {
-            
+            stations[i] = { 0,0,Adder,0 };       
+        } else {
+            stations[i] = { 0,0,Multiplier,0 };       
         }
     }
 
+    for (int i = 0; i < BUFFERS_AMOUNT; i++) {
+        if (i <= 1) {
+            buffers[i] = { 0,Load,0 }
+        } else {
+            buffers[i] = { 0,Store,0 }
+        }        
+    }
 };
 
 int readInstructions(const char* filePath, char instructions[][MAX_INSTR_LENGTH]) {
@@ -77,15 +86,23 @@ int main(void) {
         instructionsList[i] = parseInstruction(inputInstructions[i]);
     }
 
-    for(short i =0; i < instructionAmount; i++){
-        debugInstruction(instructionsList[i]);
-    }
-
     int registers[REG_AMOUNT];
     ReservationStation reservationStations[STATIONS_AMOUNT];
     LoadStoreBuffer loadStoreBuffers[BUFFERS_AMOUNT];
 
-    initializeStructures(registers, reservationStations,)
+    initializeStructures(registers, reservationStations, LoadStoreBuffer);
+
+    int i = 0;
+
+    while(1) {
+        debugInstruction(instructionsList[i++]);
+
+        if (i == instructionAmount) {
+            break;
+        }
+
+        clock += 1;
+    }
 
     return 0;
 }
