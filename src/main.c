@@ -6,6 +6,43 @@
 
 #define MAX_INSTR_LENGTH 25 // Maximum length of each instruction
 #define MAX_INSTRUCTIONS 100 // Maximum number of instructions
+#define REG_AMOUNT 16 // Number of FP registers
+#define STATIONS_AMOUNT 5 // Number of reservation stations - 3 adders and 2 multipliers
+#define BUFFERS_AMOUNT 4 // Number of load/store buffers - 2 for each
+
+typedef enum {
+    Adder,
+    Multiplier
+} StationType;
+
+typedef struct {
+    bool busy;
+    bool ready;
+    StationType type;
+    Instruction in;
+} ReservationStation;
+
+typedef enum {
+    Load,
+    Store
+} BufferType;
+
+typedef struct {
+    bool busy;
+    BufferType type;
+    Instruction in;
+} LoadStoreBuffer; 
+
+void initializeStructures(int registers[REG_AMOUNT], ReservationStation stations[STATIONS_AMOUNT], LoadStoreBuffer buffers[BUFFERS_AMOUNT]) {
+    int register[REGISTER_AMOUT] = {0}
+
+    for (int i = 0; i < STATIONS_AMOUNT; i++) {
+        if (i <= 2) {
+            
+        }
+    }
+
+};
 
 int readInstructions(const char* filePath, char instructions[][MAX_INSTR_LENGTH]) {
     FILE *fptr;
@@ -30,7 +67,7 @@ int main(void) {
     int instructionAmount = readInstructions(inputPath, inputInstructions);      
 
     if (instructionAmount == -1) {
-        printf("Failed to read input file.\n");
+        printf("\033[1;31m Failed to read input file.\n");
         return 1;
     }
 
@@ -43,6 +80,12 @@ int main(void) {
     for(short i =0; i < instructionAmount; i++){
         debugInstruction(instructionsList[i]);
     }
+
+    int registers[REG_AMOUNT];
+    ReservationStation reservationStations[STATIONS_AMOUNT];
+    LoadStoreBuffer loadStoreBuffers[BUFFERS_AMOUNT];
+
+    initializeStructures(registers, reservationStations,)
 
     return 0;
 }

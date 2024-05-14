@@ -7,10 +7,10 @@ typedef enum
 {
     LW,
     SW,
-    SUBD,
-    DIVD,
-    MULD,
-    ADDD,
+    SUB,
+    DIV,
+    MUL,
+    ADD,
 } Operation;
 
 typedef enum
@@ -27,14 +27,14 @@ const char *getOperationName(Operation op)
         return "LW";
     case SW:
         return "SW";
-    case SUBD:
-        return "SUBD";
-    case DIVD:
-        return "DIVD";
-    case MULD:
-        return "MULD";
-    case ADDD:
-        return "ADDD";
+    case SUB:
+        return "SUB";
+    case DIV:
+        return "DIV";
+    case MUL:
+        return "MUL";
+    case ADD:
+        return "ADD";
     }
 }
 
@@ -64,6 +64,8 @@ typedef struct
  * Instruction Wrapper, because there is no Polymorphism ~in this fucking~ language.
  * When the `instructionType` is `threeReg`, the programmer should use ONLY the threeReg field.
  * In the other side, if the `instructionType` is `twoReg`, the programmer should use twoReg field.
+ *
+ * It also stores the clock cycle that it was issued, finished and written in.
  */
 typedef struct
 {
@@ -71,6 +73,9 @@ typedef struct
     InstructionType type;
     Instruction_ThreeReg threeReg;
     Instruction_TwoReg twoReg;
+    int issuedAt;
+    int finishedAt;
+    int writtenAt;
 } Instruction;
 
 void remove_newline(char *str)
@@ -103,14 +108,14 @@ Operation _getOperation(char *opString)
         return SW;
     else if (strcmp(opString, "LW") == 0)
         return LW;
-    else if (strcmp(opString, "SUBD") == 0)
-        return SUBD;
-    else if (strcmp(opString, "DIVD") == 0)
-        return DIVD;
-    else if (strcmp(opString, "MULD") == 0)
-        return MULD;
-    else if (strcmp(opString, "ADDD") == 0)
-        return ADDD;
+    else if (strcmp(opString, "SUB") == 0)
+        return SUB;
+    else if (strcmp(opString, "DIV") == 0)
+        return DIV;
+    else if (strcmp(opString, "MUL") == 0)
+        return MUL;
+    else if (strcmp(opString, "ADD") == 0)
+        return ADD;
 
     _panicParserError("Invalid operation", opString);
     return -1; // Unreachable
@@ -121,7 +126,7 @@ Operation _getOperation(char *opString)
  */
 InstructionType getInstructionType(Operation op)
 {
-    if (op == SUBD || op == DIVD || op == MULD || op == ADDD)
+    if (op == SUB || op == DIV || op == MUL || op == ADD)
         return ThreeReg;
 
     return TwoReg;
@@ -270,7 +275,7 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
 }
 
 /**
- * @brief Identifies an instructiong as `Instruction_TwoReg` or `Instruction_ThreeReg`, and parses it;
+ * @brief Identifies an instruction as `Instruction_TwoReg` or `Instruction_ThreeReg`, and parses it;
  */
 Instruction _parseFullInstruction(char *instructionStr, Operation op)
 {
@@ -306,7 +311,7 @@ void debugInstruction(Instruction instruct)
         printf("[Operation]: '%s' - (ThreeReg)\n", getOperationName(instruct.operation));
         printf("[target]: %d\n", instruct.threeReg.targetReg);
         printf("[source_1]: %d\n", instruct.threeReg.srcReg1);
-        printf("[offset_2]: %d\n", instruct.threeReg.srcReg2);
+        printf("[source_2]: %d\n", instruct.threeReg.srcReg2);
     }
 }
 
