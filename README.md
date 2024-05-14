@@ -29,3 +29,23 @@ When adding a new instruction type such as `SW`, `LW`, `SUBD`, `DIVD`, make sure
 * `TwoReg` instruction follows this pattern: `LW R11,200(R2)`. `INSTRUCTION Rx, y(Rz)`
 * `ThreeReg` instruction follows this pattern: `MULD R20,R14,R19`, `SUBD R2,R9,R8`. `INSTRUCTION Rx, Ry, Rz`
 4. After you figure it out which instruction type this new instruction is, add it on the function `getInstructionType`, to return the correct _intruction type_
+
+
+---
+
+Fazer uma lista de operacoes TODO. 
+
+1 coisa a se fazer eh um despache
+Se ele for bem sucessido (se nao retornar targetStationIndex = -1)
+Vai adicionar na lista 
+[
+ {
+    Instruction,
+    CicloAtual,
+    CicloNecessario // Nao precisa definir, pq vai saber pela instrucaoo
+ }
+]
+
+A CADA CICLO DE CLOCK
+A gente chama a funcao de despache. 
+Percorre a lista vendo se da pra fazer alguma coisa. 

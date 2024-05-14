@@ -127,10 +127,13 @@ int main(void)
 
         reservationStations[targetStationIndex].busy = 1;
         reservationStations[targetStationIndex].in = currentInstruction;
+
+        /** Debug */
         printf("Reservation Station: \n");
         printf("Busy: %d", reservationStations[targetStationIndex].busy);
         debugInstruction(currentInstruction);
         printf("[Index]: %d\n\n", targetStationIndex);
+
         clock += 1;
     }
 
