@@ -1,11 +1,30 @@
 # Developer - Must READ
 ## Architecture
 
-![WhatsApp Image 2024-05-12 at 17 14 20_b6336279](https://github.com/Lemos-Labs/tomasulo/assets/49888082/15eeac3a-e080-4eda-a47c-c686327ab6c9)
+We have `32 registers` (0-31) that can be used, every one starts with a `0` value.
+A few assumptions in this code, are the clock cicle for a instruction, that is defined in the `Instruction.h`, fell free to change it in the code:
+* Read/Write - 2
+* Add/Sub - 3
+* Mult/Div - 8
 
-* 1 Load/Store
-* 1 Multiplicador de PF
-* 1 Somador de PF
+_The architecture can be changed at `main.c` at `reservationStations` variable_
+* 2 Adder
+* 1 Multiplier
+* 2 Load
+* 2 Store
+
+
+## How does it work.
+Since we wanted to make all of it single-thread, all of the tomasulo functions are inside a `while(true)`, where every iteration is a new `clock`.
+There is a "TodoOperations", simply a `Station runtimeList[]`, that is responsable for storing all the operations that are running. In every clock we check the `runtimeList[]` to see if we can do anything with the operations yet.
+
+### Step-by-Step
+1. Parse instructions _(initializating instructionsList)_
+2. Initialize structures _(such as `registers`, `runtimeList`, `reservationStations`, etc...)_
+3. While(true):
+   a. Dispatch a new instruction. _If it's successfully, we add to the `runtimeList` and set the `reservationStation` as busy. If it cannot be dispatch yet, we don't do anything with it. We decided to block the dispatch untill it's free to go_.
+   b. Searches all the `runtimeList` to check if we can do anything with a instruction. In this stage, we also check the `registers` dependencies.
+      * Here the magic happens, writing/reading registers, adding, subtracting, etc...
 
 
 ## Parser
@@ -29,23 +48,3 @@ When adding a new instruction type such as `SW`, `LW`, `SUBD`, `DIVD`, make sure
 * `TwoReg` instruction follows this pattern: `LW R11,200(R2)`. `INSTRUCTION Rx, y(Rz)`
 * `ThreeReg` instruction follows this pattern: `MULD R20,R14,R19`, `SUBD R2,R9,R8`. `INSTRUCTION Rx, Ry, Rz`
 4. After you figure it out which instruction type this new instruction is, add it on the function `getInstructionType`, to return the correct _intruction type_
-
-
----
-
-Fazer uma lista de operacoes TODO. 
-
-1 coisa a se fazer eh um despache
-Se ele for bem sucessido (se nao retornar targetStationIndex = -1)
-Vai adicionar na lista 
-[
- {
-    Instruction,
-    CicloAtual,
-    CicloNecessario // Nao precisa definir, pq vai saber pela instrucaoo
- }
-]
-
-A CADA CICLO DE CLOCK
-A gente chama a funcao de despache. 
-Percorre a lista vendo se da pra fazer alguma coisa. 

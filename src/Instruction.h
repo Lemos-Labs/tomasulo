@@ -285,9 +285,14 @@ Instruction _parseFullInstruction(char *instructionStr, Operation op)
     {
         returnInstruction.type = TwoReg;
         returnInstruction.twoReg = _parseInstructionTwoReg(instructionStr);
+        returnInstruction.issuedAt = -1;
+        returnInstruction.finishedAt = -1;
+        returnInstruction.writtenAt = -1;
         return returnInstruction;
     }
-
+    returnInstruction.issuedAt = -1;
+    returnInstruction.finishedAt = -1;
+    returnInstruction.writtenAt = -1;
     returnInstruction.type = ThreeReg;
     returnInstruction.threeReg = _parseInstructionThreeReg(instructionStr);
     return returnInstruction;
@@ -313,6 +318,9 @@ void debugInstruction(Instruction instruct)
         printf("[source_1]: %d\n", instruct.threeReg.srcReg1);
         printf("[source_2]: %d\n", instruct.threeReg.srcReg2);
     }
+    printf("[issuedAt]: %d\n", instruct.issuedAt);
+    printf("[finishedAt]: %d\n", instruct.finishedAt);
+    printf("[writtenAt]: %d\n", instruct.writtenAt);
 }
 
 /**

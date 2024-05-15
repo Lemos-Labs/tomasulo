@@ -57,16 +57,19 @@ int main(void)
     Station reservationStations[STATIONS_AMOUNT] = {
         {0, 0, Adder, 0}, {0, 0, Adder, 0}, {0, 0, Multiplier, 0}, {0, 0, Load, 0}, {0, 0, Load, 0}, {0, 0, Store, 0}, {0, 0, Store, 0}};
 
+    /**
+     * Initialized with -1 in all positions to show there are no pos yet.
+    */
+    Station runtimeList[MAX_INSTRUCTIONS] = {-1};
+
     int currentInstructionPos = 0;
     while (1)
     {
         if (currentInstructionPos == instructionAmount)
             break;
         Instruction currentInstruction = instructionsList[currentInstructionPos];
-        dispatchInstruction(reservationStations, currentInstruction);
-        /** Debug */
+        dispatchInstruction(reservationStations, currentInstruction, clock, runtimeList);
         debugReservationStation(reservationStations[5]);
-        exit(0);
         clock += 1;
     }
 
