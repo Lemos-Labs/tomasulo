@@ -74,6 +74,7 @@ typedef struct
     Instruction_ThreeReg threeReg;
     Instruction_TwoReg twoReg;
     int issuedAt;
+    int startAt;
     int finishedAt;
     int writtenAt;
 } Instruction;

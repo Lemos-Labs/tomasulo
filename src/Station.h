@@ -20,10 +20,11 @@ typedef enum
  */
 typedef struct
 {
-    bool ready;
-    bool busy;
+    int ready;
+    int busy;
     StationType type;
     Instruction instruction;
+    int tmp_value;
 } Station;
 
 /**
@@ -111,7 +112,7 @@ bool dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instructio
 
     for (int i = 0; i < MAX_INSTRUCTIONS; i++)
     {
-        if (runtimeList[i].busy == -1)
+        if (runtimeList[i].ready == -1)
         {
             runtimeList[i] = reservationStation[stationIndex];
             return 1;
