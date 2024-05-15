@@ -4,10 +4,11 @@
 
 #include "Instruction.h"
 #include "Station.h"
+#include "Register.h"
 
 #define MAX_INSTR_LENGTH 25  // Maximum length of each instruction
 #define MAX_INSTRUCTIONS 100 // Maximum number of instructions
-#define REG_AMOUNT 16        // Number of FP registers
+#define REG_AMOUNT 32        // Number of FP registers
 
 int clock = 0;
 
@@ -53,22 +54,24 @@ int main(void)
     }
 
     /** Initialize Structures */
-    int registers[REG_AMOUNT] = {0};
+    Register registers[REG_AMOUNT] = {-1, 0};
     Station reservationStations[STATIONS_AMOUNT] = {
         {0, 0, Adder, 0}, {0, 0, Adder, 0}, {0, 0, Multiplier, 0}, {0, 0, Load, 0}, {0, 0, Load, 0}, {0, 0, Store, 0}, {0, 0, Store, 0}};
 
     /**
      * Initialized with -1 in all positions to show there are no pos yet.
-    */
+     */
     Station runtimeList[MAX_INSTRUCTIONS] = {-1};
 
     int currentInstructionPos = 0;
     while (1)
     {
-        if (currentInstructionPos == instructionAmount)
-            break;
+        /** Dispatch */
         Instruction currentInstruction = instructionsList[currentInstructionPos];
-        dispatchInstruction(reservationStations, currentInstruction, clock, runtimeList);
+        if (currentInstructionPos < instructionAmount && dispatchInstruction(reservationStations, currentInstruction, clock, runtimeList))
+            currentInstructionPos += 1;
+
+        /** Searches the runtimeList */
         debugReservationStation(reservationStations[5]);
         clock += 1;
     }
