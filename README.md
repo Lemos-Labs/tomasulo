@@ -15,14 +15,16 @@ _The architecture can be changed at `main.c` at `reservationStations` variable_
 
 
 ## How does it work.
-Since we wanted to make all of it single-thread, all of the tomasulo functions are inside a `while(true)`, where every iteration is a new `clock`.
+Since we wanted to make all of it single-threaded, all of the tomasulo functions are inside a `while(true)`, where every iteration is a new `clock`.
 There is a "TodoOperations", simply a `Station runtimeList[]`, that is responsable for storing all the operations that are running. In every clock we check the `runtimeList[]` to see if we can do anything with the operations yet.
 
 ### Step-by-Step
 1. Parse instructions _(initializating instructionsList)_
 2. Initialize structures _(such as `registers`, `runtimeList`, `reservationStations`, etc...)_
 3. While(true):
-   a. Dispatch a new instruction. _If it's successfully, we add to the `runtimeList` and set the `reservationStation` as busy. If it cannot be dispatch yet, we don't do anything with it. We decided to block the dispatch untill it's free to go_.
+
+   a. Dispatch a new instruction. _If it's successfull, we add to the `runtimeList` and set the `reservationStation` as busy. If it cannot be dispatch yet, we don't do anything with it. We decided to block the dispatch untill it's free to go_.
+
    b. Searches all the `runtimeList` to check if we can do anything with a instruction. In this stage, we also check the `registers` dependencies.
       * Here the magic happens, writing/reading registers, adding, subtracting, etc...
 

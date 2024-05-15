@@ -1,9 +1,6 @@
 #define STATIONS_AMOUNT 7    // Number of reservation stations - 2 adders, 1 multiplier, 2 load, 2 store
 #define MAX_INSTRUCTIONS 100 // Maximum number of instructions
 
-#include <stdlib.h>
-#include <stdbool.h>
-
 /**
  * @brief All the 4 possible stationsType
  */
@@ -20,8 +17,7 @@ typedef enum
  */
 typedef struct
 {
-    int ready;
-    int busy;
+    bool busy;
     StationType type;
     Instruction instruction;
 } Station;
@@ -73,7 +69,6 @@ void debugReservationStation(Station station)
 {
     printf("* Reservation Station: \n");
     printf("[Busy]: %d\n", station.busy);
-    printf("[Ready]: %d\n", station.ready);
     printf("* Instruction in It:");
     debugInstruction(station.instruction);
 }
@@ -82,18 +77,18 @@ void debugReservationStation(Station station)
  * #### Dispatchs the instruction!
  *
  * @brief When a dispatch is made sucessfully, it'll return `true`(1), if not, returns a `false` (0).
- * Usually, a dispatch is not made sucessfully when there is none stations for it.
+ * Usually, a dispatch is not made sucessfully when stations are occupied.
  *
- * If success, the station will be modified with `busy = 1` and then added on the `runtimeList`.
+ * If it dispatches, the station will be modified with `busy = 1` and then added on the `runtimeList`.
  * The instruction will be modified with `issueAt = currentClock`.
  *
  * @param reservationStation List of stations
  * @param instruction The instruction to be dispatched
- * @param clock The current clock
+ * @param clock The current clock cicle
  * @param runtimeList Runtime list so that the station can be added on
- *
+ * @returns Reservation station index where the operation was stored in
  */
-bool dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instruction instruction, int clock, Station runtimeList[MAX_INSTRUCTIONS])
+short dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instruction instruction, int clock, Station runtimeList[MAX_INSTRUCTIONS])
 {
     StationType stationType = _getDispatchTarget(instruction);
     int stationIndex = _findNonBusyStation(reservationStation, stationType);
@@ -101,8 +96,7 @@ bool dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instructio
     if (stationIndex == -1)
     {
         printf("TODO - Stations are full, but it's not implemented");
-        exit(0);
-        return 0;
+        return -1;
     }
 
     reservationStation[stationIndex].busy = 1;
@@ -111,11 +105,11 @@ bool dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instructio
 
     for (int i = 0; i < MAX_INSTRUCTIONS; i++)
     {
-        if (runtimeList[i].ready == -1)
+        if (runtimeList[i].busy == 0)
         {
             runtimeList[i] = reservationStation[stationIndex];
-            return 1;
+            return stationIndex;
         }
     }
-    return 1;
+    return -1;
 }

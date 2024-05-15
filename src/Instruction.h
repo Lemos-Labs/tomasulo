@@ -1,7 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
+
+#define LOAD_STORE_CTIME 2
+#define ADD_SUB_CTIME 3
+#define MULT_DIV_CTIME 8
 
 typedef enum
 {
@@ -74,7 +76,7 @@ typedef struct
     Instruction_ThreeReg threeReg;
     Instruction_TwoReg twoReg;
     int issuedAt;
-    int startAt;
+    int startedAt;
     int finishedAt;
     int writtenAt;
 } Instruction;
@@ -196,7 +198,6 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
     {
         if (instructionStr[k] == '\n' || instructionStr[k] == 0)
             break;
-
         switch (instructionStr[k])
         {
         case 'R': // targetReg
@@ -227,14 +228,12 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
             break;
         case '(': // sourgeReg1
             k += 1;
-
             if (instructionStr[k] != 'R')
             {
                 char message[50];
                 sprintf(message, "Expected 'R' after brackets, but received '%c'", instructionStr[k]);
                 _panicParserError(message, instructionStr);
             }
-
             k += 1;
             initial = k;
             char srgRegTmp[10] = {0};
@@ -251,13 +250,10 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
         case ')': // Success, the ONLY return method here
             if (inputReceived[0] == 0)
                 _panicParserError("'target register' is missing ", instructionStr);
-
             if (inputReceived[1] == 0)
                 _panicParserError("'first source register' is missing ", instructionStr);
-
             if (inputReceived[2] == 0)
                 _panicParserError("'second source register' is missing ", instructionStr);
-
             Instruction_TwoReg returnInstruct = {targetReg, sourceReg1, offset};
             return returnInstruct;
         case ' ':
@@ -270,7 +266,6 @@ Instruction_TwoReg _parseInstructionTwoReg(char *instructionStr)
         }
     }
     _panicParserError("Ended misteriously. Check if the instructions ends with an ')'", instructionStr);
-
     Instruction_TwoReg failedInstruct = {0, 0, 0};
     return failedInstruct;
 }
@@ -287,13 +282,13 @@ Instruction _parseFullInstruction(char *instructionStr, Operation op)
         returnInstruction.type = TwoReg;
         returnInstruction.twoReg = _parseInstructionTwoReg(instructionStr);
         returnInstruction.issuedAt = -1;
-        returnInstruction.startAt = -1;
+        returnInstruction.startedAt = -1;
         returnInstruction.finishedAt = -1;
         returnInstruction.writtenAt = -1;
         return returnInstruction;
     }
     returnInstruction.issuedAt = -1;
-    returnInstruction.startAt = -1;
+    returnInstruction.startedAt = -1;
     returnInstruction.finishedAt = -1;
     returnInstruction.writtenAt = -1;
     returnInstruction.type = ThreeReg;
@@ -340,4 +335,25 @@ Instruction parseInstruction(char *instructionStr)
     int operator= _getOperation(token);
     Instruction instruct = _parseFullInstruction(saveInstr, operator);
     return instruct;
+}
+
+/**
+ * ## Returns amount of clock cycles that a certain `Operation` takes.
+ */
+short getOperationTime(Operation op) {
+   switch (op)
+   {
+    case SW:
+    case LW:
+        return LOAD_STORE_CTIME;
+    case ADD:
+    case SUB:
+        return ADD_SUB_CTIME;
+    case MUL:
+    case DIV:
+        return MULT_DIV_CTIME;
+    default:
+        printf("Invalid operation");
+        return -1;     
+   }
 }
