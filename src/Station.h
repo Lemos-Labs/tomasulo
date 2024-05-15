@@ -24,7 +24,6 @@ typedef struct
     int busy;
     StationType type;
     Instruction instruction;
-    int tmp_value;
 } Station;
 
 /**

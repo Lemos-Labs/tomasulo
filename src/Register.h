@@ -1,4 +1,4 @@
 typedef struct {
     int value;
-    bool busy;    
+    int busyBy;    
 } Register;

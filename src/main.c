@@ -10,6 +10,10 @@
 #define MAX_INSTRUCTIONS 100 // Maximum number of instructions
 #define REG_AMOUNT 32        // Number of FP registers
 
+#define LOAD_STORE_CTIME 2
+#define ADD_SUB_CTIME 3
+#define MULT_DIV_CTIME 8
+
 int clock = 0;
 
 int readInstructions(const char *filePath, char instructions[][MAX_INSTR_LENGTH])
@@ -55,7 +59,7 @@ int main(void)
 
     /** Initialize Structures */
     Station reservationStations[STATIONS_AMOUNT] = {
-        {0, 0, Adder, 0, 0}, {0, 0, Adder, 0, 0}, {0, 0, Multiplier, 0, 0}, {0, 0, Load, 0, 0}, {0, 0, Load, 0, 0}, {0, 0, Store, 0, 0}, {0, 0, Store, 0, 0}};
+        {0, 0, Adder, 0}, {0, 0, Adder, 0}, {0, 0, Multiplier, 0}, {0, 0, Load, 0}, {0, 0, Load, 0}, {0, 0, Store, 0}, {0, 0, Store, 0}};
     Register registers[REG_AMOUNT];
     for (int i = 0; i < REG_AMOUNT; i++)
         registers[i] = (Register){-1, 0};
@@ -65,7 +69,7 @@ int main(void)
      */
     Station runtimeList[MAX_INSTRUCTIONS];
     for (int i = 0; i < MAX_INSTRUCTIONS; i++)
-        runtimeList[i] = (Station){-1, -1, 0, 0, 0};
+        runtimeList[i] = (Station){-1, -1, 0, 0};
 
     int currentInstructionPos = 0;
     while (1)
@@ -82,15 +86,23 @@ int main(void)
             if (runtimeList[i].busy == -1)
                 break;
 
+            if(runtimeList[i].instruction.startAt == -1) {
+                runtimeList[i].instruction.startAt = clock;
+                break;
+            }
             // 1. Checar Operacao. 
-            // 2. Se nao tiver started: Coloca started
-            // 3a. Se um dos buffers estiver em waiting/busy, nao faz nada
-            // 3b. Caso contrario, faz a operacao normalmente:
-            ///// Se nao tiver Started: 
-            //////// Coloca started = clock_atual
-            //////// Coloca targets = busy.
-            //////// Pega valor de source normalmente e coloca
-            //////// SW R1,0,R3 - Salva o valor R3 no reg R1 - Libera 
+            // 2. Se nao tiver started:
+            //// - Coloca started
+            // 3. Se started + tempo_operacao >= clock
+            //// - Se target estiver busy (de outro) entao BREAK
+            //// - Se target nao estiver busy coloca como busy.
+            //// - Se source(s) = busy entao BREAK.
+            //// - Se source(s) nao estiverem busy, faz operacao e armazena no registrador target.
+            //// - WriteTime = started+tempo_operacao + 1 (proxima operacao)
+            // 4. Se WriteTime = clock
+            //// - Libera os registradores
+            //// - Remove do runtimelist
+            //// - realinha o  runtimelist (faz um shitleft pra tirar o -1)
         }
 
         // debugReservationStation(reservationStations[5]);

@@ -3,7 +3,7 @@
 
 We have `32 registers` (0-31) that can be used, every one starts with a `0` value.
 A few assumptions in this code, are the clock cicle for a instruction, that is defined in the `Instruction.h`, fell free to change it in the code:
-* Read/Write - 2
+* Load/Store - 2
 * Add/Sub - 3
 * Mult/Div - 8
 

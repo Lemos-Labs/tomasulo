@@ -287,11 +287,13 @@ Instruction _parseFullInstruction(char *instructionStr, Operation op)
         returnInstruction.type = TwoReg;
         returnInstruction.twoReg = _parseInstructionTwoReg(instructionStr);
         returnInstruction.issuedAt = -1;
+        returnInstruction.startAt = -1;
         returnInstruction.finishedAt = -1;
         returnInstruction.writtenAt = -1;
         return returnInstruction;
     }
     returnInstruction.issuedAt = -1;
+    returnInstruction.startAt = -1;
     returnInstruction.finishedAt = -1;
     returnInstruction.writtenAt = -1;
     returnInstruction.type = ThreeReg;
