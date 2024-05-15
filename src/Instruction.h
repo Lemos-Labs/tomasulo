@@ -317,6 +317,7 @@ void debugInstruction(Instruction instruct)
         printf("[source_2]: %d\n", instruct.threeReg.srcReg2);
     }
     printf("[issuedAt]: %d\n", instruct.issuedAt);
+    printf("[startedaT]: %d\n", instruct.startedAt);
     printf("[finishedAt]: %d\n", instruct.finishedAt);
     printf("[writtenAt]: %d\n", instruct.writtenAt);
 }
@@ -338,11 +339,37 @@ Instruction parseInstruction(char *instructionStr)
 }
 
 /**
+ * @brief Modifies the `mutAssociatedRegisters[]` and puts the value in it.
+ */
+void getAssociatedRegisters(short mutAssociatedRegisters[3], Instruction in)
+{
+    int target = 0;
+    int src1 = 0;
+    int src2 = 0;
+    if (in.type == TwoReg)
+    {
+        target = in.twoReg.targetReg;
+        src1 = in.twoReg.srcReg1;
+        src2 = in.twoReg.srcReg1;
+    }
+    else
+    {
+        target = in.threeReg.targetReg;
+        src1 = in.threeReg.srcReg1;
+        src2 = in.threeReg.srcReg2;
+    }
+    mutAssociatedRegisters[0] = target;
+    mutAssociatedRegisters[1] = src1;
+    mutAssociatedRegisters[2] = src2;
+}
+
+/**
  * ## Returns amount of clock cycles that a certain `Operation` takes.
  */
-short getOperationTime(Operation op) {
-   switch (op)
-   {
+short getOperationTime(Operation op)
+{
+    switch (op)
+    {
     case SW:
     case LW:
         return LOAD_STORE_CTIME;
@@ -354,6 +381,6 @@ short getOperationTime(Operation op) {
         return MULT_DIV_CTIME;
     default:
         printf("Invalid operation");
-        return -1;     
-   }
+        return -1;
+    }
 }

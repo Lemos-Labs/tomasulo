@@ -88,28 +88,16 @@ void debugReservationStation(Station station)
  * @param runtimeList Runtime list so that the station can be added on
  * @returns Reservation station index where the operation was stored in
  */
-short dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instruction instruction, int clock, Station runtimeList[MAX_INSTRUCTIONS])
+short dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instruction instruction, int clock)
 {
     StationType stationType = _getDispatchTarget(instruction);
     int stationIndex = _findNonBusyStation(reservationStation, stationType);
 
     if (stationIndex == -1)
-    {
-        printf("TODO - Stations are full, but it's not implemented");
         return -1;
-    }
 
     reservationStation[stationIndex].busy = 1;
     reservationStation[stationIndex].instruction = instruction;
     reservationStation[stationIndex].instruction.issuedAt = clock;
-
-    for (int i = 0; i < MAX_INSTRUCTIONS; i++)
-    {
-        if (runtimeList[i].busy == 0)
-        {
-            runtimeList[i] = reservationStation[stationIndex];
-            return stationIndex;
-        }
-    }
-    return -1;
+    return stationIndex;
 }
