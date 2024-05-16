@@ -61,47 +61,59 @@ int main(void)
 
     /** Initialize Structures */
     Station reservationStations[STATIONS_AMOUNT] = {
-        {0, Adder, 0},
-        {0, Adder, 0},
-        {0, Multiplier, 0},
-        {0, Load, 0},
-        {0, Load, 0},
-        {0, Store, 0},
-        {0, Store, 0}};
+        {0, Adder, 0, 0},
+        {0, Adder, 0, 0},
+        {0, Multiplier, 0, 0},
+        {0, Load, 0, 0},
+        {0, Load, 0, 0},
+        {0, Store, 0, 0},
+        {0, Store, 0, 0}};
 
-    int currentInstructionPos = 1;
-    int resPostTmp = dispatchInstruction(reservationStations, instructionsList[0], clock);
-    printf("[{1}] Instrucao numero 1 (%d) foi dispachada\n", resPostTmp);
-    printf("\n == fim do clock 1 ==");
+    int currentInstructionPos = 0;
     while (1)
     {
-        clock += 1;
-        if (clock == 10)
-            return 0;
+
+        /** In-order dispatch */
+        Instruction currentInstruction = instructionsList[currentInstructionPos];
+
+        short stationIndex = dispatchInstruction(reservationStations, currentInstruction, clock, currentInstructionPos);
+
+        if (currentInstructionPos < instructionAmount && stationIndex != -1)
+        {
+            currentInstructionPos += 1;
+            printf("\n[{%d}] Instrucao numero %d(%d) foi dispachada\n", clock, currentInstructionPos, stationIndex);
+        }
+        else
+        {
+            printf("[{%d}] Instrucao numero %d tentou entrar, mas ta full", clock, currentInstructionPos + 1);
+        }
+
         /** Executes all the reservationsStations */
         for (int i = 0; i < STATIONS_AMOUNT; i++)
         {
-            if (reservationStations[i].busy == 0) {
+            if (reservationStations[i].busy == 0)
                 continue;
-            }
+
             short associatedRegisters[3] = {-1};
 
+            if (reservationStations[i].instruction.issuedAt == clock)
+                continue;
             // Acabou de ir para o banco de registrador
             if (reservationStations[i].instruction.startedAt == -1)
             {
-                printf("\n[{%d}] (%d) Entrou no startedAt -1\n", clock, i);
+                printf("\n[{%d}] (%d) Entrou no startedAt -1\n", clock, reservationStations[i].debugInstructionLine);
 
                 InstructionType type = getInstructionType(reservationStations[i].instruction.operation);
                 getAssociatedRegisters(associatedRegisters, reservationStations[i].instruction);
                 if (!isRegisterFree(registers[associatedRegisters[0]], i))
                 {
-                    printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, i, associatedRegisters[0]);
+                    printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, reservationStations[i].debugInstructionLine, associatedRegisters[0]);
                     continue;
                 }
                 registers[associatedRegisters[0]].busyBy = i;
                 if (!isRegisterFree(registers[associatedRegisters[1]], i))
                 {
-                    printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, i, associatedRegisters[1]);
+                    printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, reservationStations[i].debugInstructionLine, associatedRegisters[1]);
                     continue;
                 }
 
@@ -111,12 +123,12 @@ int main(void)
                 {
                     if (!isRegisterFree(registers[associatedRegisters[2]], i))
                     {
-                        printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, i, associatedRegisters[2]);
+                        printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, reservationStations[i].debugInstructionLine, associatedRegisters[2]);
                         continue;
                     }
                     registers[associatedRegisters[2]].busyBy = i;
                 }
-                printf("\n[{%d}] (%d) Saiu do startedAt -1\n", clock, i);
+                printf("\n[{%d}] (%d) Saiu do startedAt -1\n", clock, reservationStations[i].debugInstructionLine);
                 reservationStations[i].instruction.startedAt = clock;
                 continue;
             }
@@ -124,20 +136,21 @@ int main(void)
             // Escrever no registrador
             if (reservationStations[i].instruction.writtenAt == clock)
             {
-                printf("\n[{%d}] (%d) Entrou no write stage!\n", clock, i);
+                getAssociatedRegisters(associatedRegisters, reservationStations[i].instruction);
+                printf("\n[{%d}] (%d) Entrou no write stage!\n", clock, reservationStations[i].debugInstructionLine);
                 registers[associatedRegisters[0]].busyBy = -1;
                 registers[associatedRegisters[1]].busyBy = -1;
                 registers[associatedRegisters[2]].busyBy = -1;
 
-                reservationStations[i] = (Station){0, 0, 0};
-                printf("\n[{%d}] (%d) Finalizou o write stage!\n", clock, i);
+                reservationStations[i].busy = 0;
+                printf("\n[{%d}] (%d) Finalizou o write stage!\n", clock, reservationStations[i].debugInstructionLine);
                 continue;
             }
 
             // Se ainda nao terminou...
             if ((reservationStations[i].instruction.startedAt + getOperationTime(reservationStations[i].instruction.operation)) <= clock)
             {
-                printf("\n[{%d}] (%d) Entrou no final do seu clock!\n", clock, i);
+                printf("\n[{%d}] (%d) Entrou no final do seu clock!\n", clock, reservationStations[i].debugInstructionLine);
                 Operation operationType = reservationStations[i].instruction.operation;
                 int result = 0;
 
@@ -167,27 +180,17 @@ int main(void)
                     printf("Unreachable code.");
                     exit(0);
                 }
-                printf("\n[{%d}] (%d) Saiu do final do seu clock!\n", clock, i);
+                printf("\n[{%d}] (%d) Saiu do final do seu clock!\n", clock, reservationStations[i].debugInstructionLine);
                 reservationStations[i].instruction.finishedAt = clock;
                 reservationStations[i].instruction.writtenAt = clock + 1;
                 continue;
             }
         }
 
-        /** In-order dispatch */
-        Instruction currentInstruction = instructionsList[currentInstructionPos];
-
-        short stationIndex = dispatchInstruction(reservationStations, currentInstruction, clock);
-
-        if (currentInstructionPos < instructionAmount && stationIndex != -1)
-        {
-            currentInstructionPos += 1;
-            printf("\n[{%d}] Instrucao numero %d(%d) foi dispachada\n", clock, currentInstructionPos, stationIndex);
-        } else {
-            printf("[{%d}] Instrucao numero %d tentou entrar, mas ta full", clock, currentInstructionPos + 1);
-        }
-
         printf("\n == fim do clock %d == ", clock);
+        clock += 1;
+        if (clock == 10)
+            return 0;
     }
 
     return 0;

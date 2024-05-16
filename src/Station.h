@@ -20,6 +20,7 @@ typedef struct
     bool busy;
     StationType type;
     Instruction instruction;
+    int debugInstructionLine;
 } Station;
 
 /**
@@ -86,9 +87,10 @@ void debugReservationStation(Station station)
  * @param instruction The instruction to be dispatched
  * @param clock The current clock cicle
  * @param runtimeList Runtime list so that the station can be added on
+ * @param instructionPosInLine For debug purposes, just to show us which instruction this station is.
  * @returns Reservation station index where the operation was stored in
  */
-short dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instruction instruction, int clock)
+short dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instruction instruction, int clock, int instructionPosInLine)
 {
     StationType stationType = _getDispatchTarget(instruction);
     int stationIndex = _findNonBusyStation(reservationStation, stationType);
@@ -99,5 +101,6 @@ short dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instructi
     reservationStation[stationIndex].busy = 1;
     reservationStation[stationIndex].instruction = instruction;
     reservationStation[stationIndex].instruction.issuedAt = clock;
+    reservationStation[stationIndex].debugInstructionLine = instructionPosInLine + 1;
     return stationIndex;
 }
