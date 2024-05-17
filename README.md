@@ -4,6 +4,43 @@
 ```bash
 ./tomasulo.exe <INPUT_FILE> <OUTPUT_FILE>
 ```
+The program will read `INPUT_FILE`'s instructions and write all the logs in `.md` format in the `OUTPUT_FILE`. 
+
+### Output example
+```md
+
+# CICLE X
+## Log
+* [2] Dispatched
+* [1] Started
+
+## Registers
+```json
+[
+{"id": 1, "busyByStation": 0, "busyByInst": 1, "v": 1},
+]
+```
+
+## Stations
+```json
+[
+    {"type": "ADDER (0)", "Instruction": {
+        "operation": "ADD",
+        "issuedAt": 1,
+        "startedAt": 2,
+        "finishedAt": -1,
+        "writtenAt": -1
+    }},
+    {"type": "ADDER (1)", "Instruction": {
+        "operation": "ADD",
+        "issuedAt": 2,
+        "startedAt": -1,
+        "finishedAt": -1,
+        "writtenAt": -1
+    }},
+]
+```
+```
 
 ## Architecture
 
