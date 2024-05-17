@@ -130,10 +130,10 @@ int main(void)
                         printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, reservationStations[i].debugInstructionLine, associatedRegisters[2]);
                         continue;
                     }
-                    registers[associatedRegisters[2]].busyBy = i;
+                    // registers[associatedRegisters[2]].busyBy = i;
                 }
                 registers[associatedRegisters[0]].busyBy = i;
-                registers[associatedRegisters[1]].busyBy = i;
+                // registers[associatedRegisters[1]].busyBy = i;
                 printf("\n[{%d}] (%d) Saiu do startedAt -1\n", clock, reservationStations[i].debugInstructionLine);
                 logInstructionStep(1, reservationStations[i].debugInstructionLine);
                 reservationStations[i].instruction.startedAt = clock;
@@ -147,8 +147,8 @@ int main(void)
                 printf("\n[{%d}] (%d) Entrou no write stage!\n", clock, reservationStations[i].debugInstructionLine);
                 logInstructionStep(3, reservationStations[i].debugInstructionLine);
                 registers[associatedRegisters[0]].busyBy = -1;
-                registers[associatedRegisters[1]].busyBy = -1;
-                registers[associatedRegisters[2]].busyBy = -1;
+                // registers[associatedRegisters[1]].busyBy = -1;
+                // registers[associatedRegisters[2]].busyBy = -1;
 
                 reservationStations[i].busy = 0;
                 printf("\n[{%d}] (%d) Finalizou o write stage!\n", clock, reservationStations[i].debugInstructionLine);
@@ -158,6 +158,7 @@ int main(void)
             // Se ainda nao terminou...
             if ((reservationStations[i].instruction.startedAt + getOperationTime(reservationStations[i].instruction.operation)) <= clock)
             {
+                getAssociatedRegisters(associatedRegisters, reservationStations[i].instruction);
                 printf("\n[{%d}] (%d) Entrou no final do seu clock!\n", clock, reservationStations[i].debugInstructionLine);
                 logInstructionStep(2, reservationStations[i].debugInstructionLine);
                 Operation operationType = reservationStations[i].instruction.operation;
