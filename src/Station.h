@@ -101,6 +101,33 @@ short dispatchInstruction(Station reservationStation[STATIONS_AMOUNT], Instructi
     reservationStation[stationIndex].busy = 1;
     reservationStation[stationIndex].instruction = instruction;
     reservationStation[stationIndex].instruction.issuedAt = clock;
+    reservationStation[stationIndex].instruction.startedAt = -1;
+    reservationStation[stationIndex].instruction.finishedAt = -1;
+    reservationStation[stationIndex].instruction.writtenAt = -1;
     reservationStation[stationIndex].debugInstructionLine = instructionPosInLine + 1;
     return stationIndex;
+}
+
+void getStationByType(char *str, StationType type)
+{
+    switch (type)
+    {
+    case ADD:
+    case SUB:
+        str = "ADDER";
+        return;
+    case LW:
+        str = "LOAD";
+        return;
+    case SW:
+        str = "STORE";
+        return;
+    case MUL:
+    case DIV:
+        str = "MULTIPLIER";
+        return;
+    default:
+        str = "Unknown";
+        return;
+    }
 }
