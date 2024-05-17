@@ -15,14 +15,10 @@ The program will read `INPUT_FILE`'s instructions and write all the logs in `.md
 * [1] Started
 
 ## Registers
-```json
 [
 {"id": 1, "busyByStation": 0, "busyByInst": 1, "v": 1},
 ]
-```
-
 ## Stations
-```json
 [
     {"type": "ADDER (0)", "Instruction": {
         "operation": "ADD",
@@ -39,7 +35,6 @@ The program will read `INPUT_FILE`'s instructions and write all the logs in `.md
         "writtenAt": -1
     }},
 ]
-```
 ```
 
 ## Architecture
