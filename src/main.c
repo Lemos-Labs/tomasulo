@@ -13,9 +13,14 @@
 #define ADDR_REG_AMOUNT 16   // Number of address registers
 #define STATIONS_AMOUNT 7    // Number of stations
 
-const char inputPath[] = "./input/sum_69_0.txt"; // Change path if needed.
+char *inputPath = "./input/input_02.txt";
+char *outPath = "./out/sum_693_0.md";
 
-int clock = 1;
+/**
+ * @brief Returns the size of the file (lines);
+ * 
+ * Panics if something goes wrong (like reading the life, ig...)
+*/
 short readInstructions(const char *filePath, char instructions[][MAX_INSTR_LENGTH])
 {
     FILE *fptr;
@@ -23,7 +28,7 @@ short readInstructions(const char *filePath, char instructions[][MAX_INSTR_LENGT
 
     if (fptr == NULL)
     {
-        printf("Error opening file.\n");
+        printf("\033[1;31mError opening file. \033[0m\n");
         exit(0);
     }
 
@@ -34,20 +39,37 @@ short readInstructions(const char *filePath, char instructions[][MAX_INSTR_LENGT
     }
 
     fclose(fptr);
+    if (count == -1)
+    {
+        printf("\033[1;31m Failed to read input file.\n");
+        exit(0);
+    }
     return count;
 };
 
-int main(void)
+/**
+ * @brief Parses CLI argument to initialize `inputPath` and `outPath`!
+ *
+ * For now, the args are: `./tomasulo.exe <input> <output>`, for simplicity, we are not using flags, but index arg based.
+ */
+void parseArgs(int argc, char *argv[])
 {
+    if (argc != 3)
+    {
+        printf("\033[1;31mUsage:\033[0m ./tomasulo.exe <input> <output>\n");
+        exit(0);
+    };
+    inputPath = argv[1];
+    outPath = argv[2];
+}
+
+int clock = 1;
+int main(int argc, char *argv[])
+{
+    parseArgs(argc, argv);
     char inputInstructions[MAX_INSTRUCTIONS][MAX_INSTR_LENGTH];
 
     short instructionAmount = readInstructions(inputPath, inputInstructions);
-
-    if (instructionAmount == -1)
-    {
-        printf("\033[1;31m Failed to read input file.\n");
-        return 1;
-    }
 
     Instruction instructionsList[instructionAmount];
 
@@ -72,23 +94,20 @@ int main(void)
     int currentInstructionPos = 0;
     while (1)
     {
-        newCicle(clock);
+        newCicle(clock, outPath);
 
         /** In-order dispatch */
         Instruction currentInstruction = instructionsList[currentInstructionPos];
-
         if (currentInstructionPos < instructionAmount)
         {
             short stationIndex = dispatchInstruction(reservationStations, currentInstruction, clock, currentInstructionPos);
             if (stationIndex != -1)
             {
                 currentInstructionPos += 1;
-                printf("\n[{%d}] Instrucao numero %d(%d) foi dispachada\n", clock, currentInstructionPos, stationIndex);
                 logInstructionStep(0, currentInstructionPos);
             }
             else
             {
-                printf("[{%d}] Instrucao numero %d tentou entrar, mas ta full", clock, currentInstructionPos + 1);
                 logDependecy(currentInstructionPos + 1);
             }
         }
@@ -103,63 +122,48 @@ int main(void)
 
             if (reservationStations[i].instruction.issuedAt == clock)
                 continue;
-            // Acabou de ir para o banco de registrador
+
+            /** Start Operations */
             if (reservationStations[i].instruction.startedAt == -1)
             {
-                printf("\n[{%d}] (%d) Entrou no startedAt -1\n", clock, reservationStations[i].debugInstructionLine);
                 InstructionType type = getInstructionType(reservationStations[i].instruction.operation);
                 getAssociatedRegisters(associatedRegisters, reservationStations[i].instruction);
                 if (!isRegisterFree(registers[associatedRegisters[0]], i))
                 {
-                    printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, reservationStations[i].debugInstructionLine, associatedRegisters[0]);
                     logDependencyRegister(associatedRegisters[0], reservationStations[i].debugInstructionLine);
                     continue;
                 }
                 if (!isRegisterFree(registers[associatedRegisters[1]], i))
                 {
-                    printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, reservationStations[i].debugInstructionLine, associatedRegisters[1]);
                     logDependencyRegister(associatedRegisters[1], reservationStations[i].debugInstructionLine);
                     continue;
                 }
 
-                if (type == ThreeReg)
+                if (type == ThreeReg && !isRegisterFree(registers[associatedRegisters[2]], i))
                 {
-                    if (!isRegisterFree(registers[associatedRegisters[2]], i))
-                    {
-                        logDependencyRegister(associatedRegisters[2], reservationStations[i].debugInstructionLine);
-                        printf("\n[{%d}] (%d) Registrador %d ta busy, vou esperar", clock, reservationStations[i].debugInstructionLine, associatedRegisters[2]);
-                        continue;
-                    }
-                    // registers[associatedRegisters[2]].busyBy = i;
+                    logDependencyRegister(associatedRegisters[2], reservationStations[i].debugInstructionLine);
+                    continue;
                 }
                 registers[associatedRegisters[0]].busyBy = i;
-                // registers[associatedRegisters[1]].busyBy = i;
-                printf("\n[{%d}] (%d) Saiu do startedAt -1\n", clock, reservationStations[i].debugInstructionLine);
                 logInstructionStep(1, reservationStations[i].debugInstructionLine);
                 reservationStations[i].instruction.startedAt = clock;
                 continue;
             }
 
-            // Escrever no registrador
+            /** Write Stage */
             if (reservationStations[i].instruction.writtenAt == clock)
             {
                 getAssociatedRegisters(associatedRegisters, reservationStations[i].instruction);
-                printf("\n[{%d}] (%d) Entrou no write stage!\n", clock, reservationStations[i].debugInstructionLine);
                 logInstructionStep(3, reservationStations[i].debugInstructionLine);
                 registers[associatedRegisters[0]].busyBy = -1;
-                // registers[associatedRegisters[1]].busyBy = -1;
-                // registers[associatedRegisters[2]].busyBy = -1;
-
                 reservationStations[i].busy = 0;
-                printf("\n[{%d}] (%d) Finalizou o write stage!\n", clock, reservationStations[i].debugInstructionLine);
                 continue;
             }
 
-            // Se ainda nao terminou...
+            /** Operation Complete*/
             if ((reservationStations[i].instruction.startedAt + getOperationTime(reservationStations[i].instruction.operation)) <= clock)
             {
                 getAssociatedRegisters(associatedRegisters, reservationStations[i].instruction);
-                printf("\n[{%d}] (%d) Entrou no final do seu clock!\n", clock, reservationStations[i].debugInstructionLine);
                 logInstructionStep(2, reservationStations[i].debugInstructionLine);
                 Operation operationType = reservationStations[i].instruction.operation;
                 int result = 0;
@@ -198,7 +202,6 @@ int main(void)
                     printf("Unreachable code.");
                     exit(0);
                 }
-                printf("\n[{%d}] (%d) Saiu do final do seu clock!\n", clock, reservationStations[i].debugInstructionLine);
                 reservationStations[i].instruction.finishedAt = clock;
                 reservationStations[i].instruction.writtenAt = clock + 1;
                 continue;
@@ -207,9 +210,7 @@ int main(void)
 
         logRegisters(registers, reservationStations);
         logStations(reservationStations);
-        printf("\n == fim do clock %d == ", clock);
         clock += 1;
-
         if (clock >= 10)
         {
             int allDone = 1;

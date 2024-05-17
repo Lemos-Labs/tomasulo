@@ -2,10 +2,11 @@
 
 #define STATIONS_AMOUNT 7 // Number of stations
 #define REG_AMOUNT 32     // Number of FP registers
-#define LOG_PATH "./out/sum_69_0.md"
 
-void newCicle(int cicle)
+char *LOG_PATH = "./out/sum_69_0.md";
+void newCicle(int cicle, char *path)
 {
+    LOG_PATH = path;
     FILE *file = fopen(LOG_PATH, "a");
     if (file == NULL)
     {
@@ -13,6 +14,7 @@ void newCicle(int cicle)
     }
     else
     {
+        printf("\n\033[0;36m# Cicle %d\033[0m\n", cicle);
         fprintf(file, "# CICLE %d\n## Log\n", cicle);
     }
     fclose(file);
@@ -35,25 +37,29 @@ void logInstructionStep(int step, int line)
         switch (step)
         {
         case 0:
+            printf("* \033[32m[%d]\033[0m Dispatched\n", line);
             fprintf(file, "* [%d] Dispatched\n", line);
             break;
         case 1:
+            printf("* \033[32m[%d]\033[0m Started\n", line);
             fprintf(file, "* [%d] Started\n", line);
             break;
         case 2:
+            printf("* \033[32m[%d]\033[0m Completed\n", line);
             fprintf(file, "* [%d] Completed\n", line);
             break;
         case 3:
+            printf("* \033[32m[%d]\033[0m Wrote in memory\n", line);
             fprintf(file, "* [%d] Wrote in memory\n", line);
             break;
         default:
+            printf("* \033[32m[%d]\033[0m Unknown\n", line);
             fprintf(file, "* [%d] Unknown\n", line);
             break;
         }
     }
     fclose(file);
 }
-
 
 void logDependencyRegister(int dependency, int line)
 {
@@ -65,6 +71,7 @@ void logDependencyRegister(int dependency, int line)
     else
     {
         fprintf(file, "* [%d] Cannot start, it's waiting for Register %d\n", line, dependency);
+        printf("* \033[32m[%d]\033[31m Cannot start\033[0m - Waiting for register %d\n", line, dependency);
     }
     fclose(file);
 }
@@ -78,12 +85,11 @@ void logDependecy(int line)
     }
     else
     {
+        printf("* \033[32m[%d]\033[31m Cannot be dispatched\033[0m - Waiting for a station to be free\n", line);
         fprintf(file, "* [%d] Cannot be dispatched, waiting for a station to be free\n", line);
     }
     fclose(file);
 }
-
-
 
 void logRegisters(Register registers[REG_AMOUNT], Station stations[STATIONS_AMOUNT])
 {
@@ -99,7 +105,7 @@ void logRegisters(Register registers[REG_AMOUNT], Station stations[STATIONS_AMOU
         {
             if (registers[i].busyBy != -1)
             {
-                fprintf(file, "{\"id\": %d, \"busyByStation\": %d, \"busyByInst\": %d, \"v\": %d},\n", i, registers[i].busyBy, stations[registers[i].busyBy].debugInstructionLine ,registers[i].value);
+                fprintf(file, "{\"id\": %d, \"busyByStation\": %d, \"busyByInst\": %d, \"v\": %d},\n", i, registers[i].busyBy, stations[registers[i].busyBy].debugInstructionLine, registers[i].value);
             }
         }
         fprintf(file, "]\n```\n");

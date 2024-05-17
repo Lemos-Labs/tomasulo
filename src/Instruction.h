@@ -104,7 +104,7 @@ void _panicParserError(char *message, char *instruction)
     exit(0);
 }
 
-//@TODO: change this to switch bc it's O(1)
+// @TODO: change this to switch bc it's O(1)
 Operation _getOperation(char *opString)
 {
     if (strcmp(opString, "SW") == 0)
