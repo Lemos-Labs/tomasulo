@@ -1,13 +1,21 @@
-# Developer - Must READ
+# Details
+
+## Usage
+```bash
+./tomasulo.exe <INPUT_FILE> <OUTPUT_FILE>
+```
+
 ## Architecture
 
-We have `32 registers` (0-31) that can be used, every one starts with a `0` value.
-A few assumptions in this code, are the clock cicle for a instruction, that is defined in the `Instruction.h`, fell free to change it in the code:
+We have `32 registers` (0-31) that can be used, every one starts with it's index as a value _e.g. `R0` has value `0`, `R1` has value `1`,..., `R29` has value `29`.
+_If you decide to change the quantity of registers, don't forget to change `REG_AMOUNT` at `main.c` and `Log.h`_
+
+A few assumptions in this code, are the cicle amount for a instruction to complete, it's defined in the `Instruction.h`, fell free to change it in the code. 
 * Load/Store - 2
 * Add/Sub - 3
 * Mult/Div - 8
 
-_The architecture can be changed at `main.c` at `reservationStations` variable_
+_The architecture can be changed at `main.c` at `reservationStations` variable, if you decide to change it, don't forget to change the `STATIONS_AMOUNT` at  `Log.h`, `main.c` and `Station.h`_
 * 2 Adder
 * 1 Multiplier
 * 2 Load
@@ -35,10 +43,10 @@ There is a "TodoOperations", simply a `Station runtimeList[]`, that is responsab
 SW Rx,y(Rz)
 LW Rx,y(Rz)
 
-SUBD Rx,Ry,Rz
-DIVD Rx,Ry,Rz
-MULD Rx,Ry,Rz
-ADDD Rx,Ry,Rz
+SUB Rx,Ry,Rz
+DIV Rx,Ry,Rz
+MUL Rx,Ry,Rz
+ADD Rx,Ry,Rz
 ```
 
 ### Adding a new Instruction support
