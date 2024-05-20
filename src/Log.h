@@ -101,8 +101,18 @@ void logRegisters(Register registers[REG_AMOUNT], Station stations[STATIONS_AMOU
     else
     {
         fprintf(file, "\n## Registers\n```json\n[\n");
+        printf("\n");
         for (int i = 0; i < REG_AMOUNT; i++)
         {
+            if (i % 4 != 3)
+            {
+                printf("\x1b[33m[R%02d]: %s \x1b[0m    ", i, registers[i].busyBy == -1 ? "\x1b[32mfree" : "\x1b[31mbusy");
+            }
+            else
+            {
+                printf("\x1b[33m[R%02d]: %s \x1b[0m   \n", i, registers[i].busyBy == -1 ? "\x1b[32mfree" : "\x1b[31mbusy");
+            }
+
             if (registers[i].busyBy != -1)
             {
                 fprintf(file, "{\"id\": %d, \"busyByStation\": %d, \"busyByInst\": %d, \"v\": %d},\n", i, registers[i].busyBy, stations[registers[i].busyBy].debugInstructionLine, registers[i].value);
